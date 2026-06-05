@@ -14,6 +14,16 @@ module.exports = async function handleDebug(req, res, { path, method, json }) {
     return json(res, 200, { ok: true, server: "yoinks-mock", time: new Date().toISOString() }), true;
   }
 
+  // ── GET / and HEAD / — root health probe (Render, uptime monitors) ─────────
+  if (path === "/" && (method === "GET" || method === "HEAD")) {
+    if (method === "HEAD") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end();
+      return true;
+    }
+    return json(res, 200, { ok: true, message: "Yoinks mock API is running", env: process.env.APP_ENV ?? "local", timestamp: new Date().toISOString() }), true;
+  }
+
   // ── POST /support-email ────────────────────────────────────────────────────
   if (path === "/support-email" && method === "POST") {
     return json(res, 200, { success: true }), true;

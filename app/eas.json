@@ -34,8 +34,8 @@
       },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "staging",
-        "EXPO_PUBLIC_API_BASE": "https://REPLACE_WITH_HOSTED_MOCK_SERVER_URL/graphql",
-        "EXPO_PUBLIC_API_BASE_REST": "https://REPLACE_WITH_HOSTED_MOCK_SERVER_URL/",
+        "EXPO_PUBLIC_API_BASE": "https://yoinks-mock-api.onrender.com/graphql",
+        "EXPO_PUBLIC_API_BASE_REST": "https://yoinks-mock-api.onrender.com/",
         "EXPO_PUBLIC_USE_ADB_REVERSE": "false",
         "EXPO_PUBLIC_ENABLE_DEV_LOGIN": "true",
         "EXPO_PUBLIC_ENABLE_MOCK_PAYMENTS": "true",
