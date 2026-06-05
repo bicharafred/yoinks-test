@@ -1,0 +1,88 @@
+mutation CreateInteraction($input: CreateInteractionInput!) {
+  createInteraction(input: $input)
+}
+
+mutation UpdateUserName($input: UpdateUserName!) {
+  updateUserName(input: $input) {
+    id
+    name
+    avatar
+    isAdult
+    hasIdentityValidation
+    allowAdultContent
+    email
+  }
+}
+
+mutation UnblurMoment($input: UnblurMomentInput!) {
+  unblurMoment(input: $input) {
+    success
+    error
+  }
+}
+
+mutation CreateReport($input: CreateReportInput!) {
+  createReport(input: $input) {
+    success
+    error
+  }
+}
+
+mutation BlockAuthor($input: BlockAuthor!) {
+  blockAuthor(input: $input) {
+    id
+    email
+    name
+    isAdult
+    hasIdentityValidation
+    allowAdultContent
+    blockedAuthorIds
+  }
+}
+
+mutation UnblockAuthor($input: BlockAuthor!) {
+  unblockAuthor(input: $input) {
+    id
+    email
+    name
+    isAdult
+    hasIdentityValidation
+    allowAdultContent
+    blockedAuthorIds
+  }
+}
+
+mutation HideMoment($input: HideMoment!) {
+  hideMoment(input: $input) {
+    id
+    email
+    name
+    isAdult
+    hasIdentityValidation
+    allowAdultContent
+    hiddenMomentIds
+  }
+}
+
+mutation SaveDeviceToken($deviceToken: String!, $platform: String!) {
+  saveDeviceToken(deviceToken: $deviceToken, platform: $platform)
+}
+
+mutation SetNotificationAsRead($notificationId: ID!) {
+  setNotificationAsRead(notificationId: $notificationId)
+}
+
+# Posts a new comment on a Moment; the returned Comment is written to local state immediately.
+mutation CreateComment($input: CreateCommentInput!) {
+  createComment(input: $input) {
+    id
+    momentId
+    text
+    createdAt
+    author {
+      id
+      name
+      avatar
+    }
+  }
+}

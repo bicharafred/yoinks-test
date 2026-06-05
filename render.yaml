@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: yoinks-mock-api
+    env: node
+    rootDir: mock-server
+    buildCommand: npm install
+    startCommand: npm start
+    # After deploy, update PUBLIC_API_BASE_URL with the actual Render service URL.
+    # Render injects PORT automatically — do not set PORT here.
+    envVars:
+      - key: APP_ENV
+        value: staging
+      - key: PUBLIC_API_BASE_URL
+        value: https://yoinks-mock-api.onrender.com
+      - key: MOCK_PAYMENTS
+        value: "true"
+      - key: NODE_ENV
+        value: production

@@ -1,0 +1,86 @@
+query GetFeedMoments($authorId: ID!, $nextToken: String, $limit: Int) {
+  getFeedMoments(authorId: $authorId, nextToken: $nextToken, limit: $limit) {
+    items {
+      ...MomentFragment
+    }
+    nextToken
+    resultCount
+  }
+}
+
+query GetWalletBalance($authorId: ID!) {
+  getWalletBalance(authorId: $authorId) {
+    transferable
+    redeemable
+  }
+}
+query GetInteractionsByMoment($momentId: ID!, $nextToken: String) {
+  interactionsByMoment(momentId: $momentId, nextToken: $nextToken) {
+    interactions {
+      viewerId
+      viewer {
+        id
+        name
+        avatar
+      }
+      applauseCount
+    }
+    nextToken
+  }
+}
+
+query GetAuthorMoments($authorId: ID!, $nextToken: String, $limit: Int) {
+  getAuthorMoments(authorId: $authorId, nextToken: $nextToken, limit: $limit) {
+    items {
+      ...MomentFragment
+    }
+    nextToken
+    resultCount
+  }
+}
+
+query GetMoment($input: GetMomentInput!) {
+  getMoment(input: $input) {
+    ...MomentFragment
+  }
+}
+
+# Fetches the comment thread for a specific Moment, paginated via nextToken.
+query GetCommentsByMoment($momentId: ID!, $nextToken: String) {
+  commentsByMoment(momentId: $momentId, nextToken: $nextToken) {
+    items {
+      id
+      momentId
+      parentCommentId
+      text
+      createdAt
+      author {
+        id
+        name
+        avatar
+      }
+    }
+    nextToken
+  }
+}
+
+query GetNotifications($limit: Int, $nextToken: String) {
+  getNotifications(limit: $limit, nextToken: $nextToken) {
+    items {
+      notificationId
+      title
+      message
+      type
+      isRead
+      createdAt
+      mediaUrl
+      userId
+      momentId
+      momentSequence
+      viewerId
+      viewerName
+      viewerAvatar
+    }
+    nextToken
+  }
+}

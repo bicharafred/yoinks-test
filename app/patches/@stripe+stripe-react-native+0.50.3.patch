@@ -1,0 +1,25 @@
+diff --git a/node_modules/@stripe/stripe-react-native/ios/StripeSwiftInterop.h b/node_modules/@stripe/stripe-react-native/ios/StripeSwiftInterop.h
+index c7a804d..736db35 100644
+--- a/node_modules/@stripe/stripe-react-native/ios/StripeSwiftInterop.h
++++ b/node_modules/@stripe/stripe-react-native/ios/StripeSwiftInterop.h
+@@ -11,8 +11,6 @@
+ @protocol STPPaymentCardTextFieldDelegate;
+ @protocol STPCardFormViewDelegate;
+ 
+-typedef NS_ENUM(NSUInteger, STPPaymentStatus);
+-
+ // stripe_react_native-Swift.h also depends on these headers.
+ #import <React/RCTBridgeModule.h>
+ #import <React/RCTViewManager.h>
+@@ -23,3 +21,11 @@ typedef NS_ENUM(NSUInteger, STPPaymentStatus);
+ #elif __has_include(<stripe_react_native-Swift.h>)
+ #import <stripe_react_native-Swift.h>
+ #endif
++
++// Xcode 16+ (Swift 6+) generates SWIFT_ENUM_FWD_DECL(NSInteger, STPPaymentStatus) in
++// the auto-generated Swift header above. Providing a conflicting NSUInteger typedef
++// here causes a "conflicting types" build error. Only add the legacy forward declaration
++// when the generated header does not supply SWIFT_ENUM_FWD_DECL.
++#if !defined(SWIFT_ENUM_FWD_DECL)
++typedef NS_ENUM(NSUInteger, STPPaymentStatus);
++#endif

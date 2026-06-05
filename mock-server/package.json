@@ -1,0 +1,16 @@
+{
+  "name": "yoinks-mock-server",
+  "version": "1.0.0",
+  "description": "Local mock backend for Yoinks app development",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "adb:reverse": "adb reverse tcp:4000 tcp:4000 && adb reverse tcp:8081 tcp:8081"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "stripe": "^17.0.0",
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "841741282894",
+    "project_id": "yoinks-staging",
+    "storage_bucket": "yoinks-staging.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841741282894:android:1ba22f9f336ba3dc829d1f",
+        "android_client_info": {
+          "package_name": "app.yoinks.YoinksApp.staging"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841741282894-jinfi2fin8ddic5e39i132vdb6clj43o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB42SqKjirlq2Hlc0RSP0WBoF6bvPjWGBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841741282894-jinfi2fin8ddic5e39i132vdb6clj43o.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "841741282894-gb8epkkh38ot14cjg04e8stgv72mqk53.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yoinks.YoinksApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

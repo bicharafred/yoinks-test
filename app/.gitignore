@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.expo/
+dist/
+android/
+ios/
+.DS_Store
+__MACOSX/
+expo-env.d.ts

@@ -1,0 +1,57 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "requireCommit": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_VIDEO_ENABLED": "false"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "bundleIdentifier": "app.yoinks.YoinksApp.staging"
+      },
+      "android_applicationId": "app.yoinks.YoinksApp.staging",
+      "env": {
+        "EXPO_PUBLIC_API_BASE": "https://api-staging.yoinks.com/graphql",
+        "EXPO_PUBLIC_API_BASE_REST": "https://api-staging.yoinks.com/",
+        "EXPO_PUBLIC_USE_ADB_REVERSE": "false",
+        "EXPO_PUBLIC_VIDEO_ENABLED": "false"
+      }
+    },
+    "staging-apk": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging",
+        "EXPO_PUBLIC_API_BASE": "https://REPLACE_WITH_HOSTED_MOCK_SERVER_URL/graphql",
+        "EXPO_PUBLIC_API_BASE_REST": "https://REPLACE_WITH_HOSTED_MOCK_SERVER_URL/",
+        "EXPO_PUBLIC_USE_ADB_REVERSE": "false",
+        "EXPO_PUBLIC_ENABLE_DEV_LOGIN": "true",
+        "EXPO_PUBLIC_ENABLE_MOCK_PAYMENTS": "true",
+        "EXPO_PUBLIC_ENABLE_MOCK_PAYOUT": "true",
+        "EXPO_PUBLIC_ENABLE_MOCK_UPLOADS": "true",
+        "EXPO_PUBLIC_VIDEO_ENABLED": "false"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_VIDEO_ENABLED": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

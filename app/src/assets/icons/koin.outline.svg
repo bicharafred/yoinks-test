@@ -1,0 +1,11 @@
+<svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g id="Koin">
+    <g id="vector">
+      <path d="M30.5 26H24L28.5 32H23.5L19 26H18.5V32H14.5V26H10.5V22H30.5V26Z" fill="currentColor" />
+      <path d="M19 14H18.5V8H14.5V14H10.5V18H30.5V14H24L28.5 8H23.5L19 14Z" fill="currentColor" />
+      <path fill-rule="evenodd" clip-rule="evenodd"
+        d="M20.5 40C31.5457 40 40.5 31.0457 40.5 20C40.5 8.9543 31.5457 0 20.5 0C9.4543 0 0.5 8.9543 0.5 20C0.5 31.0457 9.4543 40 20.5 40ZM20.5 36C29.3366 36 36.5 28.8366 36.5 20C36.5 11.1634 29.3366 4 20.5 4C11.6634 4 4.5 11.1634 4.5 20C4.5 28.8366 11.6634 36 20.5 36Z"
+        fill="currentColor" />
+    </g>
+  </g>
+</svg>

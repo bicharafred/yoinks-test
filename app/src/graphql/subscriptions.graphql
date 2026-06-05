@@ -1,0 +1,12 @@
+
+subscription OnNewNotification($userId: ID!) {
+  onNewNotification(userId: $userId) {
+    title
+    notificationId
+    createdAt
+    type
+    message
+    isRead  
+  }
+
+}

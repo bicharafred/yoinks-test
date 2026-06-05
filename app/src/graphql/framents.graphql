@@ -1,0 +1,33 @@
+fragment AuthorFragment on Author {
+  id
+  name
+  avatar
+}
+
+fragment MomentFragment on Moment {
+  id
+  applauseCount
+  viewerApplauseCount
+  createdAt
+  updatedAt
+  isLocal
+  isBlurred
+  isLocked
+  hasAdultContent
+  sequence
+  type
+  videoThumbnailUrl
+  mediaUrl
+  hasViewerSeen
+  description
+  commentCount
+  mediaItems {
+    id
+    mediaUrl
+    mediaType
+    thumbnailUrl
+  }
+  author {
+    ...AuthorFragment
+  }
+}

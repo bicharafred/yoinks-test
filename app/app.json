@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Yoinks",
+    "slug": "yoinks-app",
+    "version": "2.6.0",
+    "scheme": "yoinksapp",
+    "ios": {
+      "bundleIdentifier": "app.yoinks.YoinksApp"
+    },
+    "android": {
+      "package": "app.yoinks.YoinksApp"
+    }
+  }
+}
