@@ -6,6 +6,7 @@ const {
   createMockPaymentIntent,
   completeMockPayment,
   createStripePaymentIntent,
+  confirmStripePaymentIntent,
 } = require("../services/payment");
 
 module.exports = async function handlePayments(req, res, { path, method, readBody, json, apiError }) {
@@ -60,6 +61,32 @@ module.exports = async function handlePayments(req, res, { path, method, readBod
       return json(res, 404, apiError("PAYMENT_NOT_FOUND", result.error, { pending: result.pending })), true;
     }
     return json(res, 200, result), true;
+  }
+
+  // ── POST /wallet/confirm-payment ──────────────────────────────────────────
+  // Staging-only: verifies a real Stripe test PI and credits wallet.
+  // Use instead of webhooks in staging so no webhook tunnel setup is needed.
+  if (path === "/wallet/confirm-payment" && method === "POST") {
+    if (MOCK_PAYMENTS_ENABLED) {
+      return json(res, 400, apiError(
+        "PAYMENT_NOT_CONFIGURED",
+        "Use /mock-payment/complete in MOCK_PAYMENTS mode.",
+      )), true;
+    }
+
+    const body = await readBody(req);
+    const piId = typeof body.paymentIntentId === "string" ? body.paymentIntentId.trim() : "";
+    if (!piId) {
+      return json(res, 400, apiError("MISSING_PARAM", "paymentIntentId is required.")), true;
+    }
+
+    try {
+      const result = await confirmStripePaymentIntent(piId);
+      return json(res, 200, result), true;
+    } catch (err) {
+      console.error("[stripe:confirm] failed:", err.message);
+      return json(res, 500, apiError("CONFIRM_FAILED", err.message)), true;
+    }
   }
 
   return false;

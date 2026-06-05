@@ -4,6 +4,7 @@ import {
   type GetWalletBalanceQueryVariables,
 } from "@/gql/graphql";
 import { client } from "@/services/client";
+import { runtimeConfig } from "@/config/runtimeConfig";
 import { getValidToken } from "@/services/tokenManager";
 import { resolveLocalUrl } from "@/utils/apiUrl";
 import type {
@@ -272,11 +273,11 @@ export async function fetchStripeConnectedAccountStatus(
 /**
  * Confirms a mock payment intent created by the server in MOCK_PAYMENTS=true mode.
  * Calls POST /mock-payment/complete which credits the wallet and writes a ledger entry.
- * __DEV__ only — throws immediately in production so it can never be called in a real build.
+ * Controlled by runtimeConfig.enableMockPayments — works in staging APK as well as local dev.
  */
 export async function completeMockPayment(paymentIntentId: string): Promise<void> {
-  if (!__DEV__) {
-    throw new WalletServiceError("completeMockPayment is not available in production");
+  if (!runtimeConfig.enableMockPayments) {
+    throw new WalletServiceError("completeMockPayment requires EXPO_PUBLIC_ENABLE_MOCK_PAYMENTS=true");
   }
   await authorizedWalletRestJson("mock-payment/complete", {
     method: "POST",
@@ -285,12 +286,12 @@ export async function completeMockPayment(paymentIntentId: string): Promise<void
 }
 
 /**
- * Seeds creator earnings on the mock-server for local payout testing.
- * __DEV__ only — never callable in a production build.
+ * Seeds creator earnings on the mock-server for staging/local payout testing.
+ * Controlled by runtimeConfig.enableMockPayout.
  */
 export async function mockEarnDev(amountUsdCents: number): Promise<void> {
-  if (!__DEV__) {
-    throw new WalletServiceError("mockEarnDev is not available in production");
+  if (!runtimeConfig.enableMockPayout) {
+    throw new WalletServiceError("mockEarnDev requires EXPO_PUBLIC_ENABLE_MOCK_PAYOUT=true");
   }
   await authorizedWalletRestJson("payout/mock-earn", {
     method: "POST",
@@ -299,8 +300,8 @@ export async function mockEarnDev(amountUsdCents: number): Promise<void> {
 }
 
 export async function fetchPayoutHistory(): Promise<PayoutRecord[]> {
-  if (!__DEV__) {
-    throw new WalletServiceError("fetchPayoutHistory is not available in production");
+  if (!runtimeConfig.enableMockPayout) {
+    throw new WalletServiceError("fetchPayoutHistory requires EXPO_PUBLIC_ENABLE_MOCK_PAYOUT=true");
   }
   const raw = await authorizedWalletRestJson("payout/history", { method: "GET" });
   if (!isRecord(raw) || !Array.isArray(raw.payouts)) {
@@ -310,8 +311,8 @@ export async function fetchPayoutHistory(): Promise<PayoutRecord[]> {
 }
 
 export async function requestPayout(amountUsdCents: number): Promise<PayoutRecord> {
-  if (!__DEV__) {
-    throw new WalletServiceError("requestPayout is not available in production");
+  if (!runtimeConfig.enableMockPayout) {
+    throw new WalletServiceError("requestPayout requires EXPO_PUBLIC_ENABLE_MOCK_PAYOUT=true");
   }
   if (!Number.isInteger(amountUsdCents) || amountUsdCents <= 0) {
     throw new WalletServiceError("amountUsdCents must be a positive integer");
@@ -324,6 +325,17 @@ export async function requestPayout(amountUsdCents: number): Promise<PayoutRecor
     throw new WalletServiceError("Malformed payout response");
   }
   return raw.payout as PayoutRecord;
+}
+
+/**
+ * Staging-only: asks the mock server to verify a Stripe test PI and credit wallet.
+ * Called after a successful PaymentSheet presentation when enableMockPayments is false.
+ */
+export async function confirmStripePayment(paymentIntentId: string): Promise<void> {
+  await authorizedWalletRestJson("wallet/confirm-payment", {
+    method: "POST",
+    body: JSON.stringify({ paymentIntentId }),
+  });
 }
 
 export async function createStripeConnectedAccount(

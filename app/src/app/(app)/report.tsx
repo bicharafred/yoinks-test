@@ -16,6 +16,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -48,9 +49,10 @@ function RadioOption({
 }) {
   const { theme } = useUnistyles();
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={onPress}
       style={styles.radioRow}
+      activeOpacity={0.7}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={label}
@@ -59,7 +61,7 @@ function RadioOption({
         {selected && <View style={styles.radioInner} />}
       </View>
       <Text style={styles.radioLabel}>{label}</Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

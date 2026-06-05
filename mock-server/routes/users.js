@@ -3,6 +3,8 @@
 const { db } = require("../db");
 const { AUTHORS } = require("../data/seed");
 const { HANDLES } = require("../data/handles");
+const { PUBLIC_API_BASE_URL } = require("../config/env");
+const { uid } = require("../utils/ids");
 
 function buildUserList() {
   // Count moments per author from the live db (reflects moments added this session).
@@ -25,7 +27,36 @@ function buildUserList() {
   });
 }
 
-module.exports = async function handleUsers(req, res, { path, method, json }) {
+module.exports = async function handleUsers(req, res, { path, method, readBody, json }) {
+  // POST /uploads/avatar/sign — returns signed PUT URL for avatar upload
+  if (path === "/uploads/avatar/sign" && method === "POST") {
+    const body = await readBody(req);
+    const authorId = typeof body.authorId === "string" ? body.authorId.trim() : "unknown";
+    const fileId = uid("avatar");
+    const uploadPath = `/s3-upload/avatars/${encodeURIComponent(authorId)}/${fileId}.jpg`;
+    const putUrl = `${PUBLIC_API_BASE_URL}${uploadPath}`;
+    return json(res, 200, { putUrl, contentType: "image/jpeg", avatarUrl: putUrl }), true;
+  }
+
+  // POST /me/avatar — persist avatar URL so GraphQL queries reflect the new avatar.
+  // Accepts optional authorId to support non-default dev users (e.g. André).
+  if (path === "/me/avatar" && method === "POST") {
+    const body = await readBody(req);
+    const avatarUrl = typeof body.avatarUrl === "string" ? body.avatarUrl.trim() : "";
+    const authorId  = typeof body.authorId  === "string" ? body.authorId.trim()  : db.user.id;
+    if (avatarUrl === "") {
+      return json(res, 400, { error: "avatarUrl is required" }), true;
+    }
+    // Update the correct in-memory record so subsequent profile queries return the new avatar.
+    const authorRecord = authorId === db.user.id
+      ? db.user
+      : Object.values(AUTHORS).find((a) => a.id === authorId);
+    if (authorRecord) {
+      authorRecord.avatar = avatarUrl;
+    }
+    return json(res, 200, { avatar: avatarUrl }), true;
+  }
+
   // GET /search/users?q=<query>
   if (path === "/search/users" && method === "GET") {
     const url = new URL(req.url, "http://localhost");

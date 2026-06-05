@@ -6,8 +6,10 @@ import {
 import type { ActorRefFrom } from "xstate";
 import { assign, fromPromise, setup } from "xstate";
 
+import { runtimeConfig } from "@/config/runtimeConfig";
 import {
   completeMockPayment,
+  confirmStripePayment,
   createPaymentIntent,
   createStripeConnectedAccount,
   fetchStripeConnectedAccountStatus,
@@ -100,8 +102,9 @@ async function invokeBuySelectedPack(input: BuyInput): Promise<BuyPackOutcome> {
 
   // MOCK_PAYMENTS mode: server returns a fake PI (id starts with "pi_mock_").
   // Bypass Stripe PaymentSheet entirely — call the server's complete endpoint
-  // directly. __DEV__ guard ensures this path is stripped in production builds.
-  if (__DEV__ && paymentIntent.id.startsWith("pi_mock_")) {
+  // directly. Controlled by runtimeConfig.enableMockPayments so it also works
+  // in staging APK (EAS release builds where __DEV__ is false).
+  if (runtimeConfig.enableMockPayments && paymentIntent.id.startsWith("pi_mock_")) {
     await completeMockPayment(paymentIntent.id);
     return { outcome: "completed" };
   }
@@ -126,6 +129,12 @@ async function invokeBuySelectedPack(input: BuyInput): Promise<BuyPackOutcome> {
       return { outcome: "canceled" };
     }
     throw new WalletServiceError(presentError.message, { cause: presentError });
+  }
+
+  // Stripe test mode: verify the PI with the server and credit wallet.
+  // Not needed in mock mode — completeMockPayment already handled crediting above.
+  if (!runtimeConfig.enableMockPayments) {
+    await confirmStripePayment(paymentIntent.id);
   }
 
   return { outcome: "completed" };

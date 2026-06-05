@@ -16,10 +16,6 @@
       "android": {
         "buildType": "apk"
       },
-      "ios": {
-        "bundleIdentifier": "app.yoinks.YoinksApp.staging"
-      },
-      "android_applicationId": "app.yoinks.YoinksApp.staging",
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://api-staging.yoinks.com/graphql",
         "EXPO_PUBLIC_API_BASE_REST": "https://api-staging.yoinks.com/",
@@ -38,9 +34,11 @@
         "EXPO_PUBLIC_API_BASE_REST": "https://yoinks-mock-api.onrender.com/",
         "EXPO_PUBLIC_USE_ADB_REVERSE": "false",
         "EXPO_PUBLIC_ENABLE_DEV_LOGIN": "true",
-        "EXPO_PUBLIC_ENABLE_MOCK_PAYMENTS": "true",
+        "EXPO_PUBLIC_ENABLE_MOCK_PAYMENTS": "false",
         "EXPO_PUBLIC_ENABLE_MOCK_PAYOUT": "true",
         "EXPO_PUBLIC_ENABLE_MOCK_UPLOADS": "true",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51S6IuFDDMIpEwpzra1F1edirTEngZrfddDRHzo5FIdPS4XtqjBYAJL8V2IHC82IY9VlFQr8PlR1nOif4z3wHAeIJ00VpVMy8Yg",
+        "EXPO_PUBLIC_STRIPE_MERCHANT_IDENTIFIER": "",
         "EXPO_PUBLIC_VIDEO_ENABLED": "false"
       }
     },

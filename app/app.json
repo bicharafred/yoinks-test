@@ -4,11 +4,27 @@
     "slug": "yoinks-app",
     "version": "2.6.0",
     "scheme": "yoinksapp",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF5533"
+    },
     "ios": {
       "bundleIdentifier": "app.yoinks.YoinksApp"
     },
     "android": {
-      "package": "app.yoinks.YoinksApp"
-    }
+      "package": "app.yoinks.YoinksApp",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptative_icon.png",
+        "backgroundColor": "#FF5533"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7b889fa2-bb2e-4936-ae57-fc8f396f77fc"
+      }
+    },
+    "owner": "fredfb"
   }
 }

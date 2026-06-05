@@ -23,6 +23,7 @@ import type { PayoutRecord, WalletOffering } from "@/wallet/walletTypes";
 import {
   formatRedeemableBalance,
 } from "@/wallet/walletUtils";
+import { runtimeConfig } from "@/config/runtimeConfig";
 import { PayoutTab } from "@/wallet/components/PayoutTab";
 import { YoinksTab } from "@/wallet/components/YoinksTab";
 import { WalletInfoModal, type InfoKind } from "@/wallet/components/WalletInfoModal";
@@ -128,9 +129,9 @@ function WalletScreenWithActor({
     }
   }, [buying]);
 
-  // Reload payout history whenever the balance tab becomes active (dev only).
+  // Reload payout history whenever the balance tab becomes active (mock payout mode).
   useEffect(() => {
-    if (!__DEV__ || segment !== "balance") return;
+    if (!runtimeConfig.enableMockPayout || segment !== "balance") return;
     setPayoutLoading(true);
     fetchPayoutHistory()
       .then(setPayoutHistory)
@@ -177,7 +178,10 @@ function WalletScreenWithActor({
         return fetchPayoutHistory();
       })
       .then(setPayoutHistory)
-      .catch(() => {})
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : "Payout request failed. Try again.";
+        Alert.alert("Payout", msg);
+      })
       .finally(() => setPayoutRequesting(false));
   }, [actor, payoutRequesting, redeemable]);
 

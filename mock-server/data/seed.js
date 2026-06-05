@@ -114,6 +114,9 @@ function createSeedData() {
       // ── Vanessa Gomes (mock-user-008) ─────────────────────────────────────
       { __typename: "Moment", id: "moment-020", mediaUrl: "https://picsum.photos/seed/vanessa1/400/300",      videoThumbnailUrl: null, isValidated: true, hasAdultContent: false, type: "PHOTO", isLocal: false, isBlurred: true,  isLocked: false, applauseCount: 21, viewerApplauseCount: 0, hasViewerSeen: false, sequence: 20, createdAt: t - 72000, updatedAt: null, description: "Studio session tonight 🎵",          commentCount: 0,  author: A.vanessa },
 
+      // ── Long-caption moment — stable seeded Read More test target ────────
+      { __typename: "Moment", id: "moment-long-001", mediaUrl: "https://picsum.photos/seed/emma-hike/400/533", videoThumbnailUrl: null, isValidated: true, hasAdultContent: false, type: "PHOTO", isLocal: false, isBlurred: false, isLocked: false, applauseCount: 61, viewerApplauseCount: 0, hasViewerSeen: false, sequence: 26, createdAt: t - 900, updatedAt: null, description: "Just got back from the most incredible hiking trip in Peneda-Gerês, Portugal. Woke up at 5am two days in a row to catch the fog rolling over the valley — and every groggy minute was worth it. The trails, the silence, the cold air, the waterfalls. My legs are done. My boots are ruined. I already want to go back. If you haven't been yet, you're missing out. Seriously. Stop sleeping on Gerês. 🏔️🌿", commentCount: 0, author: A.emma },
+
       // ── Carousels (multi-media) ───────────────────────────────────────────
       // mediaItems flow via MomentFragment; mediaUrl mirrors the first item.
       {

@@ -173,10 +173,56 @@ function handleStripeWebhookEvent(event) {
   return { handled: true, ledgerEntry };
 }
 
+/**
+ * Staging-only: verifies a Stripe test PI directly via the API and credits wallet.
+ * Avoids the need for a webhook in staging while still verifying with Stripe.
+ * Safe: Stripe confirms the PI status before any credits are issued.
+ */
+async function confirmStripePaymentIntent(piId) {
+  const stripe = getStripeClient();
+  if (!stripe) throw new Error("Stripe not configured — add STRIPE_SECRET_KEY to mock-server/.env");
+
+  const pi = await stripe.paymentIntents.retrieve(piId);
+
+  if (pi.status !== "succeeded") {
+    throw new Error(`Payment not yet succeeded (status: ${pi.status})`);
+  }
+
+  const idemKey = purchaseKey(piId);
+  if (hasIdempotencyKey(idemKey)) {
+    console.log(`[stripe:confirm] PI ${piId} already credited — skipping (idempotent)`);
+    return { ok: true, alreadyProcessed: true };
+  }
+
+  const userId      = normalizeUserId(pi.metadata?.userId ?? "unknown");
+  const yoinksRaw   = pi.metadata?.yoinks;
+  const amountYoinks = yoinksRaw ? parseInt(yoinksRaw, 10) : 0;
+
+  if (!Number.isInteger(amountYoinks) || amountYoinks <= 0) {
+    throw new Error(`Invalid yoinks in PI metadata for ${piId}: "${yoinksRaw}"`);
+  }
+
+  markIdempotencyKey(idemKey);
+
+  const ledgerEntry = creditYoinks(userId, amountYoinks, {
+    paymentIntentId: piId,
+    stripeEventId:   null,
+    idempotencyKey:  idemKey,
+    source:          "STRIPE_TEST_CONFIRM",
+  });
+
+  const wallet = require("./wallet").getOrCreateWallet(userId);
+  console.log(`[stripe:confirm] credited ${amountYoinks} Yoinks — userId: ${userId} — PI: ${piId}`);
+  console.log(`[wallet] yoinksAvailable: ${wallet.yoinksAvailable}`);
+
+  return { ok: true, credited: amountYoinks, ledgerEntry };
+}
+
 module.exports = {
   getStripeClient,
   createMockPaymentIntent,
   completeMockPayment,
   createStripePaymentIntent,
+  confirmStripePaymentIntent,
   handleStripeWebhookEvent,
 };

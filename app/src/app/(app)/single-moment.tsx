@@ -71,7 +71,7 @@ export default function SingleMomentScreen() {
   const [restMoment, setRestMoment] =
     useState<GetMomentQuery["getMoment"] | null>(null);
   const [restLoading, setRestLoading] = useState(false);
-  const [restError, setRestError] = useState(false);
+  const [restError, setRestError] = useState<"not_found" | "network" | null>(null);
 
   useEffect(() => {
     if (!momentId) return;
@@ -79,18 +79,19 @@ export default function SingleMomentScreen() {
       (process.env.EXPO_PUBLIC_API_BASE_REST ?? "").replace(/\/$/, ""),
     );
     setRestLoading(true);
-    setRestError(false);
+    setRestError(null);
     fetch(`${base}/moments/${encodeURIComponent(momentId)}`)
       .then((r) => {
-        if (!r.ok) throw new Error("not_found");
+        if (r.status === 404) throw Object.assign(new Error("not_found"), { status: 404 });
+        if (!r.ok) throw Object.assign(new Error("network"), { status: r.status });
         return r.json();
       })
       .then((data) => {
         setRestMoment(data);
         setRestLoading(false);
       })
-      .catch(() => {
-        setRestError(true);
+      .catch((err: Error & { status?: number }) => {
+        setRestError(err.status === 404 ? "not_found" : "network");
         setRestLoading(false);
       });
   }, [momentId]);
@@ -173,11 +174,13 @@ export default function SingleMomentScreen() {
     );
   }
 
-  if (momentId && restError) {
+  if (momentId && restError != null) {
     return (
       <AppScreenContainer>
         <View style={styles.centered}>
-          <Text style={styles.body}>Something went wrong.</Text>
+          <Text style={styles.body}>
+            {restError === "not_found" ? "Moment not found." : "Something went wrong."}
+          </Text>
         </View>
       </AppScreenContainer>
     );

@@ -7,6 +7,9 @@ const { unlockMoment } = require("../services/unlock");
 const { normalizeUserId } = require("../utils/ids");
 const { normalizeMoment } = require("../services/moments.service");
 const { applyFeedFilters } = require("../services/feed.service");
+const { AUTHORS } = require("../data/seed");
+
+const AUTHORS_BY_ID = Object.fromEntries(Object.values(AUTHORS).map((a) => [a.id, a]));
 
 const NOW = () => Math.floor(Date.now() / 1000);
 
@@ -100,6 +103,10 @@ const resolvers = {
         parentCommentId = null;
       }
     }
+    const commentAuthorEntry = AUTHORS_BY_ID[input.authorId];
+    const commentAuthor = commentAuthorEntry
+      ? { __typename: "Author", id: commentAuthorEntry.id, name: commentAuthorEntry.name, avatar: commentAuthorEntry.avatar ?? null }
+      : { __typename: "Author", id: publicUser().id, name: publicUser().name, avatar: publicUser().avatar ?? null };
     const comment = {
       __typename: "Comment",
       id: `comment-${Date.now()}`,
@@ -107,7 +114,7 @@ const resolvers = {
       text: input.text,
       createdAt: NOW(),
       parentCommentId,
-      author: publicUser(),
+      author: commentAuthor,
     };
     db.comments.push(comment);
     return comment;

@@ -20,7 +20,7 @@ export type SettingsPersistedAuthor = Record<string, unknown> & {
 };
 
 const AVATAR_UPLOAD_UNAVAILABLE_MESSAGE =
-  "Avatar upload is not available in this app build: the GraphQL schema does not expose a presigned URL or upload mutation.";
+  "Profile photo editing is not available in this test build yet.";
 
 const DELETE_ACCOUNT_UNAVAILABLE_MESSAGE =
   "Account deletion is not available in this app build: the GraphQL schema does not expose a delete-account mutation.";
@@ -124,12 +124,29 @@ type AvatarSignedPutInstructions = {
   avatarUrl: string;
 };
 
-/**
- * Resolve signed PUT instructions from the API. Returns `null` until the GraphQL schema
- * exposes an avatar upload / presigned-URL flow (see migration plan Step 38).
- */
-async function fetchAvatarSignedPutInstructions(): Promise<AvatarSignedPutInstructions | null> {
-  return null;
+async function fetchAvatarSignedPutInstructions(
+  authorId: string,
+): Promise<AvatarSignedPutInstructions | null> {
+  try {
+    const base = resolveLocalUrl(
+      (process.env.EXPO_PUBLIC_API_BASE_REST ?? "").replace(/\/$/, ""),
+    );
+    const res = await fetch(`${base}/uploads/avatar/sign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ authorId }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      putUrl?: string;
+      contentType?: string;
+      avatarUrl?: string;
+    };
+    if (!data.putUrl || !data.contentType || !data.avatarUrl) return null;
+    return { putUrl: data.putUrl, contentType: data.contentType, avatarUrl: data.avatarUrl };
+  } catch {
+    return null;
+  }
 }
 
 async function putBlobToSignedUrl(args: {
@@ -168,12 +185,12 @@ export async function uploadAvatar(args: {
   localImageUri: string;
   currentAuthor: SettingsPersistedAuthor;
 }): Promise<UploadAvatarResult> {
-  const instructions = await fetchAvatarSignedPutInstructions();
+  const authorId =
+    typeof args.currentAuthor.id === "string" ? args.currentAuthor.id : "";
+
+  const instructions = await fetchAvatarSignedPutInstructions(authorId);
   if (instructions == null) {
-    // In local/mock dev, store the local URI as the avatar so the UX can be tested
-    // without a real upload backend. The file:// URI persists in the simulator's app
-    // sandbox between hot reloads. Production builds never enter this branch because
-    // __DEV__ is false in release builds.
+    // Fallback for local dev when the mock server is not running.
     if (__DEV__) {
       const mergedAuthor: SettingsPersistedAuthor = {
         ...args.currentAuthor,
@@ -209,6 +226,22 @@ export async function uploadAvatar(args: {
   }
 
   const avatarWithoutQuery = stripUrlQuery(instructions.avatarUrl);
+
+  // Persist the new avatar URL to the mock server so GraphQL profile queries
+  // return the updated avatar after the next refresh.
+  try {
+    const base = resolveLocalUrl(
+      (process.env.EXPO_PUBLIC_API_BASE_REST ?? "").replace(/\/$/, ""),
+    );
+    await fetch(`${base}/me/avatar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatarUrl: avatarWithoutQuery, authorId }),
+    });
+  } catch {
+    // Non-fatal: MMKV will still reflect the new avatar in-session.
+  }
+
   const mergedAuthor: SettingsPersistedAuthor = {
     ...args.currentAuthor,
     avatar: avatarWithoutQuery,
