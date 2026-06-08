@@ -4,7 +4,12 @@ import {
   CreateReportDocument,
   type CreateReportMutation,
   type CreateReportMutationVariables,
+  HideMomentDocument,
+  type HideMomentMutation,
+  type HideMomentMutationVariables,
 } from "@/gql/graphql";
+import { hideCreator } from "@/services/moderationService";
+import { evictCachedAuthorMomentsList, evictCachedFeedMomentsList } from "@/services/authorMomentsCache";
 import { getAppHeaderOptions } from "@/navigation/app-header-options";
 import { parseReportRouteParams } from "@/navigation/report-route-params";
 import { client } from "@/services/client";
@@ -30,6 +35,7 @@ const CONTENT_REASONS = [
   { key: "HATE_SPEECH",                 label: "Hate Speech" },
   { key: "SCAM_FRAUD_SPAM",             label: "Scam, Fraud or Spam" },
   { key: "FALSE_INFORMATION",           label: "False information" },
+  { key: "ILLEGAL_ACTIVITY_CRIME",      label: "Illegal activity / Crime" },
 ];
 
 const USER_REASONS = [
@@ -37,6 +43,7 @@ const USER_REASONS = [
   { key: "HARASSMENT_BULLYING",   label: "Harassment or bullying" },
   { key: "SCAM_FRAUD_SPAM",       label: "Scam, Fraud or Spam" },
   { key: "HATE_SPEECH",           label: "Hate Speech" },
+  { key: "ILLEGAL_ACTIVITY_CRIME", label: "Illegal activity / Crime" },
   { key: "OTHER",                 label: "Other" },
 ];
 
@@ -110,6 +117,22 @@ export default function ReportScreen() {
           },
         },
       });
+
+      if (isContent) {
+        await client.mutate<HideMomentMutation, HideMomentMutationVariables>({
+          mutation: HideMomentDocument,
+          variables: { input: { hiddenMomentId: report.momentId } },
+        });
+        client.cache.evict({ id: `Moment:${report.momentId}` });
+        evictCachedAuthorMomentsList(report.authorId);
+        client.cache.gc();
+      } else {
+        await hideCreator(report.authorId);
+        evictCachedFeedMomentsList(report.authorId);
+        evictCachedAuthorMomentsList(report.authorId);
+        client.cache.gc();
+      }
+
       Toast.show({ type: "success", text1: "Thanks for your report." });
       router.back();
     } catch {

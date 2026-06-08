@@ -26,7 +26,7 @@ export function WalletTabs({ value, onChange }: WalletTabsProps) {
       />
       <WalletTabChip
         accessibilityHint="Shows creator earnings and payout history"
-        label="Payout"
+        label="Earn"
         selected={value === "balance"}
         onPress={() => {
           onChange("balance");

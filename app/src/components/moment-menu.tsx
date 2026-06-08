@@ -117,14 +117,17 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.foundation.error.foreground.primary,
   },
   cancelButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    marginTop: 8,
+    paddingVertical: theme.spacing.normal,
+    marginTop: theme.spacing.normal,
+    borderRadius: 50, // pill shape
+    borderWidth: 1.5,
+    borderColor: theme.colors.foundation.foreground.tertiary,
+    alignItems: "center",
   },
   cancelText: {
     fontSize: 16,
     fontWeight: "600",
-    color: theme.colors.foundation.foreground.secondary,
+    color: theme.colors.foundation.foreground.primary,
     textAlign: "center",
   },
 }));

@@ -13,7 +13,6 @@ import { AuthorInfo } from "./authorInfo";
 import { StyledGradient } from "./styledGradient";
 import { useMomentActions } from "@/hooks/useMomentActions";
 import { useWalletTransferableYoinks } from "@/hooks/useWalletTransferableYoinks";
-import { hideCreator } from "@/services/moderationService";
 import { client } from "@/services/client";
 import { evictCachedAuthorMomentsList } from "@/services/authorMomentsCache";
 
@@ -232,46 +231,16 @@ export const Moment = ({
 
   const authorHandle = moment.author.name ?? moment.author.id;
 
-  const handleHideMoment = () => {
+  const handleHideMoment = async () => {
     setIsMenuVisible(false);
-    Alert.alert(
-      "I Don't like this",
-      `Are you sure you don't want to see content by ${authorHandle}?\n\nThis can be undone in Settings.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Yes",
-          onPress: async () => {
-            try {
-              await hideCreator(moment.author.id);
-              // Immediately strip all moments from this author from the Apollo cache.
-              client.cache.modify({
-                fields: {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  getFeedMoments(existing: any) {
-                    if (!existing?.items) return existing;
-                    return {
-                      ...existing,
-                      items: existing.items.filter(
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        (m: any) => m?.author?.id !== moment.author.id,
-                      ),
-                    };
-                  },
-                },
-              });
-              evictCachedAuthorMomentsList(moment.author.id);
-              client.cache.gc();
-              onBeforeListRefresh?.({ reason: "hide", momentId: moment.id });
-              onRefresh();
-              Toast.show({ type: "success", text1: `You won't see posts from ${authorHandle}.` });
-            } catch {
-              Alert.alert("Error", "Could not hide this creator. Try again.");
-            }
-          },
-        },
-      ]
-    );
+    const result = await hideMoment();
+    if (!result.success) {
+      Alert.alert("Error", result.error ?? "Could not hide this moment. Try again.");
+      return;
+    }
+    onBeforeListRefresh?.({ reason: "hide", momentId: moment.id });
+    onRefresh();
+    Toast.show({ type: "success", text1: "This moment won't appear in your feed." });
   };
 
   const handleBlockAuthor = () => {

@@ -25,6 +25,8 @@ export interface NotificationListItem {
   time?: string;
   subtitle?: string;
   title?: React.ReactNode;
+  viewerId?: string;
+  viewerName?: string;
 }
 
 export interface NotificationListProps {
@@ -34,6 +36,7 @@ export interface NotificationListProps {
   onEndReached: () => void;
   contentBottomPadding: number;
   onItemPress: (item: NotificationListItem) => void;
+  onAuthorPress?: (item: NotificationListItem) => void;
   /**
    * When true, the list shows no empty UI while data is empty (e.g. initial
    * `loading` / pull-to-refresh), matching legacy
@@ -49,6 +52,7 @@ export function NotificationList({
   onEndReached,
   contentBottomPadding,
   onItemPress,
+  onAuthorPress,
   suppressEmptyState = false,
 }: NotificationListProps) {
   const { theme } = useUnistyles();
@@ -79,11 +83,12 @@ export function NotificationList({
             time={item.time}
             subtitle={item.subtitle}
             rightImageUrl={item.rightImageUrl}
+            onAuthorPress={onAuthorPress ? () => onAuthorPress(item) : undefined}
           />
         </Pressable>
       );
     },
-    [onItemPress],
+    [onItemPress, onAuthorPress],
   );
 
   const keyExtractor = useCallback((item: NotificationListItem) => item.id, []);

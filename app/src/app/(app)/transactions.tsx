@@ -201,6 +201,10 @@ function groupTransactions(transactions: Transaction[]): TransactionSection[] {
   return sections;
 }
 
+// ── Unseen tracking (session-persistent, resets on cold start) ────────────────
+// Module-level so the set survives tab navigation without needing a store.
+const seenTransactionIds = new Set<string>();
+
 // ── Filter options ────────────────────────────────────────────────────────────
 
 const FILTER_OPTIONS: { label: string; value: TransactionRange }[] = [
@@ -222,6 +226,7 @@ export default function TransactionsScreen() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState<string | null>(null);
+  const [seenIds, setSeenIds] = useState<ReadonlySet<string>>(() => new Set(seenTransactionIds));
 
   const openFilter = useCallback(() => {
     setPendingRange(range);
@@ -255,6 +260,17 @@ export default function TransactionsScreen() {
     load(range);
   }, [load, range]);
 
+  useEffect(() => {
+    if (transactions.length === 0) return;
+    const newIds = transactions.map(t => t.id).filter(id => !seenTransactionIds.has(id));
+    if (newIds.length === 0) return;
+    const timer = setTimeout(() => {
+      newIds.forEach(id => seenTransactionIds.add(id));
+      setSeenIds(new Set(seenTransactionIds));
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [transactions]);
+
   const handleApply = useCallback(() => {
     setFilterOpen(false);
     setRange(pendingRange);
@@ -265,6 +281,7 @@ export default function TransactionsScreen() {
   const renderItem = useCallback(
     ({ item }: { item: Transaction }) => {
       const d = displayForTxn(item);
+      const isNew = !seenIds.has(item.id);
 
       const amountColor = (() => {
         switch (d.amountColor) {
@@ -277,7 +294,7 @@ export default function TransactionsScreen() {
 
       return (
         <View style={styles.row}>
-          <View style={styles.dot} />
+          <View style={[styles.dot, isNew && styles.dotNew]} />
           <View style={styles.rowBody}>
             <Text style={styles.rowTitle}>{d.title}</Text>
             <Text
@@ -302,7 +319,7 @@ export default function TransactionsScreen() {
         </View>
       );
     },
-    [theme],
+    [theme, seenIds],
   );
 
   const renderSectionHeader = useCallback(
@@ -511,6 +528,9 @@ const styles = StyleSheet.create((theme) => ({
     flexShrink: 0,
     marginTop: 2,
     alignSelf: "flex-start",
+  },
+  dotNew: {
+    backgroundColor: theme.colors.foundation.foreground.brand.tertiary,
   },
   rowBody: {
     flex: 1,

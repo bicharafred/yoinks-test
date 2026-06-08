@@ -35,8 +35,8 @@ export const BottomSheet = ({ visible, onClose, children, maxHeight = 0.8, minHe
       backdropOpacity.value = withTiming(1, { duration: 220 });
       sheetTranslateY.value = withSpring(0, { damping: 26, stiffness: 300, mass: 0.8 });
     } else {
-      backdropOpacity.value = withTiming(0, { duration: 180 });
-      sheetTranslateY.value = withTiming(height, { duration: 200 });
+      backdropOpacity.value = withTiming(0, { duration: 200 });
+      sheetTranslateY.value = withSpring(height, { damping: 20, stiffness: 260, mass: 0.8 });
       // Clear any keyboard offset so the next open starts from the correct position.
       keyboardOffset.value = 0;
     }

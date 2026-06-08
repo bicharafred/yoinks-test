@@ -5,6 +5,8 @@ import {
   type NotificationListItem,
 } from "@/components/notifications/notification-list";
 import { getAppTabBarScrollContentBottomPadding } from "@/navigation/app-tab-bar-layout";
+import { APP_TAB_PROFILE_HREF, APP_TAB_WALLET_HREF } from "@/navigation/app-tabs.config";
+import { getVisitorProfilePush } from "@/navigation/author-profile-route-params";
 import type { NotificationsMachineActorRef } from "@/machines/notificationsMachine";
 import { RootMachineContext } from "@/machines/rootMachine";
 import { useSelector } from "@xstate/react";
@@ -37,14 +39,39 @@ function NotificationsScreenWithActor({
 
   const handleItemPress = useCallback(
     (item: NotificationListItem) => {
-      router.push({
-        pathname: "/(app)/single-moment",
-        params: {
-          momentSequence: item.momentSequence,
-          notificationId: item.notificationId,
-          isUnread: item.isUnread ? "true" : "false",
-        },
-      });
+      const seq = item.momentSequence?.trim();
+      const hasValidSequence = seq != null && seq !== "" && !isNaN(Number(seq)) && Number(seq) > 0;
+      if (hasValidSequence) {
+        router.push({
+          pathname: "/(app)/single-moment",
+          params: {
+            momentSequence: seq,
+            notificationId: item.notificationId,
+            isUnread: item.isUnread ? "true" : "false",
+          },
+        });
+        return;
+      }
+      const type = item.type?.toUpperCase();
+      if (type === "UNBLUR_MOMENT") {
+        router.push(APP_TAB_WALLET_HREF);
+      } else {
+        router.push(APP_TAB_PROFILE_HREF);
+      }
+    },
+    [router],
+  );
+
+  const handleAuthorPress = useCallback(
+    (item: NotificationListItem) => {
+      if (!item.viewerId) return;
+      router.push(
+        getVisitorProfilePush({
+          id: item.viewerId,
+          name: item.viewerName ?? "",
+          avatar: item.avatarUrl ?? null,
+        }),
+      );
     },
     [router],
   );
@@ -58,6 +85,7 @@ function NotificationsScreenWithActor({
         onEndReached={handleLoadMore}
         contentBottomPadding={contentBottomPadding}
         onItemPress={handleItemPress}
+        onAuthorPress={handleAuthorPress}
         suppressEmptyState={refreshing}
       />
     </AppScreenContainer>

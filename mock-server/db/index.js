@@ -38,7 +38,11 @@ function resetDb() {
   db.notifications.push(...fresh.notifications);
 
   db.interactions.length = 0;
+  db.interactions.push(...fresh.interactions);
+
   db.ledger.length = 0;
+  db.ledger.push(...fresh.ledger);
+
   db.payouts.length = 0;
   db.reports.length = 0;
 

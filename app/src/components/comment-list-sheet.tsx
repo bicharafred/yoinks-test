@@ -26,8 +26,8 @@ const MAX_COMMENT_LENGTH = 500;
 type Segment = { type: "text" | "mention"; value: string };
 
 // Matches @handle only when preceded by start-of-string or whitespace.
-// Group 1 captures optional leading whitespace; group 2 captures the @handle.
-const MENTION_RE = /(?:^|\s)(@[a-zA-Z0-9._]{1,30})/g;
+// À-ɏ covers Latin Extended-A/B so accented names (André, João) parse correctly.
+const MENTION_RE = /(?:^|\s)(@[a-zA-Z0-9À-ɏ._]{1,50})/g;
 
 function parseCommentSegments(text: string): Segment[] {
   const result: Segment[] = [];
@@ -133,8 +133,8 @@ const ReplyItem = ({ reply, onMentionPress, onAuthorPress }: ReplyItemProps) => 
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <ClapsIcon
-          width={18}
-          height={18}
+          width={22}
+          height={22}
           color={
             hasClapped
               ? theme.colors.foundation.foreground.brand.tertiary
@@ -370,10 +370,13 @@ export const CommentListSheet = ({
   };
 
   // Enters reply mode: sets the target comment, pre-fills @mention, focuses input.
+  // Uses the first word of the name for the @mention so the handle stays space-free
+  // and the authorsByHandle lookup (which also keys on first word) resolves correctly.
   const handleReply = useCallback((comment: Comment) => {
     const authorName = comment.author?.name ?? "User";
+    const firstName = authorName.split(" ")[0];
     setReplyTarget({ commentId: comment.id, authorName });
-    setInputText(`@${authorName} `);
+    setInputText(`@${firstName} `);
     setTimeout(() => inputRef.current?.focus(), 50);
   }, []);
 
@@ -394,35 +397,42 @@ export const CommentListSheet = ({
   const handleAuthorPress = useCallback(
     (author: Comment["author"]) => {
       if (!author?.id) return;
-      if (currentAuthor?.id && author.id === currentAuthor.id) {
-        router.push(APP_TAB_PROFILE_HREF);
-        return;
-      }
-      router.push(getVisitorProfilePush(author));
+      // Close the sheet first so the navigation doesn't stack on top of an open sheet.
+      // The 250ms delay matches the spring close duration in BottomSheet.
+      onClose();
+      setTimeout(() => {
+        if (currentAuthor?.id && author.id === currentAuthor.id) {
+          router.push(APP_TAB_PROFILE_HREF);
+        } else {
+          router.push(getVisitorProfilePush(author));
+        }
+      }, 250);
     },
-    [currentAuthor, router],
+    [currentAuthor, router, onClose],
   );
 
   const handleSubmit = async () => {
     const trimmed = inputText.trim();
     if (!trimmed || !currentAuthor || isSubmitting) return;
 
-    setInputText("");
-
     if (replyTarget) {
       const result = await submitReply(trimmed, currentAuthor, replyTarget.commentId);
       inputRef.current?.blur();
       if (result) {
+        setInputText("");
         setExpandedReplyIds((prev) => new Set([...prev, replyTarget.commentId]));
         setReplyTarget(null);
         onCommentSubmitted?.();
       }
+      // On failure: inputText is preserved so the user can retry without retyping.
     } else {
       const success = await submitComment(trimmed, currentAuthor);
       inputRef.current?.blur();
       if (success) {
+        setInputText("");
         onCommentSubmitted?.();
       }
+      // On failure: inputText is preserved so the user can retry without retyping.
     }
   };
 
@@ -569,8 +579,7 @@ const styles = StyleSheet.create((theme) => ({
 
   // ── Top-level comment ─────────────────────────────────────────────────────────
   commentContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.foundation.background.alpha10,
+    marginBottom: theme.spacing.xxsmall,
   },
   commentRow: {
     flexDirection: "row",
@@ -682,8 +691,6 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "space-between",
     paddingHorizontal: theme.spacing.xsmall,
     paddingVertical: theme.spacing.xsmall,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.foundation.background.alpha10,
   },
   replyBannerText: {
     fontSize: 13, // raw — de-emphasised, same scale as metadata text

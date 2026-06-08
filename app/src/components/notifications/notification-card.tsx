@@ -20,6 +20,7 @@ export interface NotificationCardProps {
   rightImageUrl?: string;
   onDiscard?: () => void;
   onRetry?: () => void;
+  onAuthorPress?: () => void;
 }
 
 export function NotificationCard({
@@ -32,6 +33,7 @@ export function NotificationCard({
   rightImageUrl,
   onDiscard,
   onRetry,
+  onAuthorPress,
 }: NotificationCardProps) {
   const { theme } = useUnistyles();
 
@@ -52,13 +54,26 @@ export function NotificationCard({
       type !== "UNBLUR_MOMENT" && typeof avatarUrl === "string";
 
     if (showRemoteAvatar) {
-      return (
+      const avatarImg = (
         <Image
           accessibilityIgnoresInvertColors
           source={{ uri: avatarUrl }}
           style={styles.avatar}
         />
       );
+      if (onAuthorPress) {
+        return (
+          <Pressable
+            onPress={onAuthorPress}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="View profile"
+          >
+            {avatarImg}
+          </Pressable>
+        );
+      }
+      return avatarImg;
     }
 
     return (

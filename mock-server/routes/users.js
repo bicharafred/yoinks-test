@@ -62,7 +62,8 @@ module.exports = async function handleUsers(req, res, { path, method, readBody, 
     const url = new URL(req.url, "http://localhost");
     const q = (url.searchParams.get("q") ?? "").trim().toLowerCase();
 
-    const allUsers = buildUserList();
+    const blocked = new Set(db.user.blockedAuthorIds || []);
+    const allUsers = buildUserList().filter((u) => !blocked.has(u.id));
 
     const users = q.length === 0
       ? allUsers

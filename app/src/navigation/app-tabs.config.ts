@@ -5,6 +5,7 @@ import type { Href } from "expo-router";
  * `RootMachineContext` on the profile screen instead.
  */
 export const APP_TAB_PROFILE_HREF = "/(app)/(tabs)/profile" as const satisfies Href;
+export const APP_TAB_WALLET_HREF  = "/(app)/(tabs)/wallet"  as const satisfies Href;
 
 /**
  * Moment capture stack route (Vision Camera). Spec: `src/app/(app)/create-moment/`.

@@ -6,11 +6,14 @@ import { RootMachineContext } from "@/machines/rootMachine";
 import { useWalletTransferableYoinks } from "@/hooks/useWalletTransferableYoinks";
 import { InviteSheet } from "@/components/invite-sheet";
 import { InviteContactsSheet } from "@/components/invite-contacts-sheet";
+import { APP_TAB_WALLET_HREF } from "@/navigation/app-tabs.config";
+import { useRouter } from "expo-router";
 import KoinsIcon from "@/assets/icons/koins.fill.svg";
 import PersonIcon from "@/assets/icons/circle.person.fill.svg";
 
 export function ProfileInviteSection() {
   const { theme } = useUnistyles();
+  const router = useRouter();
 
   const walletMachineRef = RootMachineContext.useSelector(
     (state) => state.context.walletMachineRef,
@@ -66,7 +69,13 @@ export function ProfileInviteSection() {
   return (
     <>
       <View style={styles.container}>
-        <View style={styles.balancePill}>
+        <Pressable
+          style={({ pressed }) => [styles.balancePill, pressed && styles.pressed]}
+          onPress={() => router.push(APP_TAB_WALLET_HREF)}
+          accessibilityRole="button"
+          accessibilityLabel={`${yoinks} Yoinks — open Wallet`}
+          hitSlop={8}
+        >
           <KoinsIcon
             width={18}
             height={18}
@@ -74,7 +83,7 @@ export function ProfileInviteSection() {
           />
           <Text style={styles.balanceText}>{yoinks}</Text>
           <Text style={styles.balanceLabel}>Yoinks</Text>
-        </View>
+        </Pressable>
 
         <Pressable
           style={({ pressed }) => [

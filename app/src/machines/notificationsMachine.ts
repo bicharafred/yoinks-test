@@ -16,6 +16,7 @@ export type NotificationsMachineItem = {
   apiTitle: string;
   message: string;
   viewerName?: string;
+  viewerId?: string;
   createdAt: string;
   avatarUrl?: string;
   rightImageUrl?: string;
@@ -52,6 +53,7 @@ function mapGraphqlNotificationToMachineItem(
     apiTitle: row.title,
     message: row.message,
     viewerName: row.viewerName ?? undefined,
+    viewerId: row.viewerId ?? undefined,
     createdAt: row.createdAt,
     avatarUrl: row.viewerAvatar ?? undefined,
     rightImageUrl: row.mediaUrl ?? undefined,

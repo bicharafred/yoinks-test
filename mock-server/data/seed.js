@@ -423,6 +423,10 @@ function createSeedData() {
       { id: "ledger-seed-004", type: "REFERRAL_REWARD",   userId: MOCK_AUTHOR_ID, amountYoinks: 5,         idempotencyKey: "ledger-seed-004", source: "REFERRAL",  status: "CONFIRMED", createdAt: new Date((t - 2 * 86_400)     * 1000).toISOString() },
       // Last Week — 4 days ago: user purchased Yoinks
       { id: "ledger-seed-005", type: "YOINKS_PURCHASED",  userId: MOCK_AUTHOR_ID, amountYoinks: 40,        paymentIntentId: "pi_seed_005", stripeEventId: null, idempotencyKey: "ledger-seed-005", source: "STRIPE",    status: "CONFIRMED", createdAt: new Date((t - 4 * 86_400)     * 1000).toISOString() },
+      // Last Month — 15 days ago: referral reward
+      { id: "ledger-seed-006", type: "REFERRAL_REWARD",   userId: MOCK_AUTHOR_ID, amountYoinks: 3,                                                               idempotencyKey: "ledger-seed-006", source: "REFERRAL",  status: "CONFIRMED", createdAt: new Date((t - 15 * 86_400)    * 1000).toISOString() },
+      // Last Year — 60 days ago: user purchased Yoinks
+      { id: "ledger-seed-007", type: "YOINKS_PURCHASED",  userId: MOCK_AUTHOR_ID, amountYoinks: 200,       paymentIntentId: "pi_seed_007", stripeEventId: null, idempotencyKey: "ledger-seed-007", source: "STRIPE",    status: "CONFIRMED", createdAt: new Date((t - 60 * 86_400)    * 1000).toISOString() },
     ],
     payouts:      [],
     reports:      [],

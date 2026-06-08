@@ -82,5 +82,7 @@ export function mapMachineNotificationToListItem(
     time: formatNotificationRelativeTime(row.createdAt),
     avatarUrl: row.avatarUrl,
     rightImageUrl,
+    viewerId: row.viewerId,
+    viewerName: row.viewerName,
   };
 }
