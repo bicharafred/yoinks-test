@@ -17,6 +17,7 @@ import CloseIcon from "@/assets/icons/x.small.svg";
 import type { Author, Comment, Moment } from "@/gql/graphql";
 import { useComments } from "@/hooks/useComments";
 import { getVisitorProfilePush } from "@/navigation/author-profile-route-params";
+import { APP_TAB_PROFILE_HREF } from "@/navigation/app-tabs.config";
 import { BottomSheet } from "./bottom-sheet";
 
 const MAX_COMMENT_LENGTH = 500;
@@ -87,9 +88,13 @@ function getRelativeTime(createdAt: number): string {
 }
 
 // ── ReplyItem ──────────────────────────────────────────────────────────────────
-type ReplyItemProps = { reply: Reply; onMentionPress: (mention: string) => void };
+type ReplyItemProps = {
+  reply: Reply;
+  onMentionPress: (mention: string) => void;
+  onAuthorPress?: (author: Reply["author"]) => void;
+};
 
-const ReplyItem = ({ reply, onMentionPress }: ReplyItemProps) => {
+const ReplyItem = ({ reply, onMentionPress, onAuthorPress }: ReplyItemProps) => {
   const { theme } = useUnistyles();
   const [clapCount, setClapCount] = useState(0);
   const hasClapped = clapCount > 0;
@@ -98,20 +103,24 @@ const ReplyItem = ({ reply, onMentionPress }: ReplyItemProps) => {
     <View style={styles.replyRow}>
       {/* Spacer: 40px = parent avatar width, aligns reply under parent text */}
       <View style={styles.replyIndent} />
-      <Image
-        source={
-          reply.author.avatar
-            ? { uri: reply.author.avatar }
-            : require("@/assets/images/avatar.png")
-        }
-        style={styles.replyAvatar}
-        contentFit="cover"
-      />
+      <Pressable onPress={() => onAuthorPress?.(reply.author)} hitSlop={4}>
+        <Image
+          source={
+            reply.author.avatar
+              ? { uri: reply.author.avatar }
+              : require("@/assets/images/avatar.png")
+          }
+          style={styles.replyAvatar}
+          contentFit="cover"
+        />
+      </Pressable>
       <View style={styles.commentBody}>
         <View style={styles.nameRow}>
-          <Text style={styles.authorName} numberOfLines={1}>
-            {reply.author.name}
-          </Text>
+          <Pressable onPress={() => onAuthorPress?.(reply.author)}>
+            <Text style={styles.authorName} numberOfLines={1}>
+              {reply.author.name}
+            </Text>
+          </Pressable>
           <Text style={styles.timestamp}>{getRelativeTime(reply.createdAt)}</Text>
         </View>
         <CommentText text={reply.text} onMentionPress={onMentionPress} />
@@ -148,6 +157,7 @@ type CommentItemProps = {
   onToggleReplies: () => void;
   onReply: (comment: Comment) => void;
   onMentionPress: (mention: string) => void;
+  onAuthorPress?: (author: Comment["author"]) => void;
 };
 
 const CommentItem = ({
@@ -157,6 +167,7 @@ const CommentItem = ({
   onToggleReplies,
   onReply,
   onMentionPress,
+  onAuthorPress,
 }: CommentItemProps) => {
   const { theme } = useUnistyles();
   const [clapCount, setClapCount] = useState(0);
@@ -166,21 +177,25 @@ const CommentItem = ({
   return (
     <View style={styles.commentContainer}>
       <View style={styles.commentRow}>
-        <Image
-          source={
-            comment.author?.avatar
-              ? { uri: comment.author.avatar }
-              : require("@/assets/images/avatar.png")
-          }
-          style={styles.avatar}
-          contentFit="cover"
-        />
+        <Pressable onPress={() => onAuthorPress?.(comment.author)} hitSlop={4}>
+          <Image
+            source={
+              comment.author?.avatar
+                ? { uri: comment.author.avatar }
+                : require("@/assets/images/avatar.png")
+            }
+            style={styles.avatar}
+            contentFit="cover"
+          />
+        </Pressable>
 
         <View style={styles.commentBody}>
           <View style={styles.nameRow}>
-            <Text style={styles.authorName} numberOfLines={1}>
-              {comment.author?.name ?? "Unknown"}
-            </Text>
+            <Pressable onPress={() => onAuthorPress?.(comment.author)}>
+              <Text style={styles.authorName} numberOfLines={1}>
+                {comment.author?.name ?? "Unknown"}
+              </Text>
+            </Pressable>
             <Text style={styles.timestamp}>
               {getRelativeTime(comment.createdAt)}
             </Text>
@@ -239,7 +254,12 @@ const CommentItem = ({
 
       {repliesExpanded &&
         replies.map((reply) => (
-          <ReplyItem key={reply.id} reply={reply} onMentionPress={onMentionPress} />
+          <ReplyItem
+            key={reply.id}
+            reply={reply}
+            onMentionPress={onMentionPress}
+            onAuthorPress={onAuthorPress}
+          />
         ))}
     </View>
   );
@@ -371,15 +391,27 @@ export const CommentListSheet = ({
     });
   }, []);
 
+  const handleAuthorPress = useCallback(
+    (author: Comment["author"]) => {
+      if (!author?.id) return;
+      if (currentAuthor?.id && author.id === currentAuthor.id) {
+        router.push(APP_TAB_PROFILE_HREF);
+        return;
+      }
+      router.push(getVisitorProfilePush(author));
+    },
+    [currentAuthor, router],
+  );
+
   const handleSubmit = async () => {
     const trimmed = inputText.trim();
     if (!trimmed || !currentAuthor || isSubmitting) return;
 
     setInputText("");
-    inputRef.current?.blur();
 
     if (replyTarget) {
       const result = await submitReply(trimmed, currentAuthor, replyTarget.commentId);
+      inputRef.current?.blur();
       if (result) {
         setExpandedReplyIds((prev) => new Set([...prev, replyTarget.commentId]));
         setReplyTarget(null);
@@ -387,6 +419,7 @@ export const CommentListSheet = ({
       }
     } else {
       const success = await submitComment(trimmed, currentAuthor);
+      inputRef.current?.blur();
       if (success) {
         onCommentSubmitted?.();
       }
@@ -420,6 +453,7 @@ export const CommentListSheet = ({
               onToggleReplies={() => toggleReplies(item.id)}
               onReply={handleReply}
               onMentionPress={handleMentionPress}
+              onAuthorPress={handleAuthorPress}
             />
           )}
           onEndReached={handleLoadMore}
@@ -427,7 +461,9 @@ export const CommentListSheet = ({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No comments yet. Be the first!</Text>
+            inputText.trim().length === 0 ? (
+              <Text style={styles.emptyText}>No comments yet. Be the first!</Text>
+            ) : null
           }
           ListFooterComponent={
             isLoading && comments.length > 0 ? (

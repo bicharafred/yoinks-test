@@ -124,8 +124,9 @@ export default function AppLayout() {
   );
 }
 
-const styles = StyleSheet.create(() => ({
+const styles = StyleSheet.create((theme) => ({
   root: {
     flex: 1,
+    backgroundColor: theme.colors.foundation.background.primary,
   },
 }));

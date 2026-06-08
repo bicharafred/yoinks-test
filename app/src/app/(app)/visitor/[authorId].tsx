@@ -94,7 +94,10 @@ export default function VisitorProfileScreen() {
     setResolvedVisitorHeaderTitle(title);
   }, []);
 
-  useLayoutEffect(() => {
+  // useEffect (not useLayoutEffect) so the redirect fires after the initial
+  // render completes — firing router.replace during layout caused Android crashes
+  // when the navigation stack hadn't settled yet.
+  useEffect(() => {
     if (!shouldRedirectToSelfTab) {
       return;
     }

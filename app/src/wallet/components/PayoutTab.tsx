@@ -35,7 +35,7 @@ export function PayoutTab({
               <WalletPrimaryButton
                 accessibilityHint="Add $5.00 of mock creator earnings to test the payout flow"
                 disabled={earningsSeeding}
-                label={earningsSeeding ? "Adding earnings…" : "Seed $5 Earnings"}
+                label={earningsSeeding ? "Adding earnings…" : "Add Mock $5 Earnings (Dev)"}
                 variant="outline"
                 onPress={onSeedEarnings}
               />

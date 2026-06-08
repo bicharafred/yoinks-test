@@ -154,6 +154,8 @@ const styles = StyleSheet.create((theme) => ({
     color: isActive ? theme.colors.common.black : theme.colors.common.white,
     fontSize: 16, // raw — no token; consistent with rest of feed overlay text
     fontWeight: "700",
+    minWidth: theme.spacing.normal,
+    textAlign: "center",
   }),
   actionRow: {
     flexDirection: "row",

@@ -187,13 +187,15 @@ export function MomentCarousel({
 
       {/* Dot pagination */}
       {items.length > 1 && (
-        <View style={styles.dots} pointerEvents="none">
-          {items.map((_, index) => (
-            <View
-              key={index}
-              style={index === activeIndex ? styles.dotActive : styles.dotInactive}
-            />
-          ))}
+        <View style={styles.dotsContainer} pointerEvents="none">
+          <View style={styles.dotsScrim}>
+            {items.map((_, index) => (
+              <View
+                key={index}
+                style={index === activeIndex ? styles.dotActive : styles.dotInactive}
+              />
+            ))}
+          </View>
         </View>
       )}
     </View>
@@ -257,7 +259,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
     includeFontPadding: false,
   },
-  dots: {
+  dotsContainer: {
     position: "absolute",
     // gigalarge (48px) clears the MomentActions button row (~48px tall from
     // the bottom) so dots sit above the action pills, not behind them.
@@ -267,22 +269,27 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: theme.spacing.xxsmall,
     zIndex: 1,
+  },
+  dotsScrim: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.xxsmall,
+    backgroundColor: "rgba(0,0,0,0.35)", // raw — pill scrim on media; no DS token for this overlay value
+    borderRadius: theme.spacing.xlarge,
+    paddingHorizontal: theme.spacing.small,
+    paddingVertical: theme.spacing.xxsmall,
   },
   dotActive: {
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
-    // brand.tertiary = #FF5533 — Yoinks primary orange.
-    backgroundColor: theme.colors.foundation.foreground.brand.tertiary,
+    backgroundColor: theme.colors.common.white,
   },
   dotInactive: {
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
-    // alpha30 = rgba(255,255,255,0.3) dark / rgba(0,0,0,0.3) light — translucent
-    // overlay that stays visible on any photo/video background.
-    backgroundColor: theme.colors.foundation.background.alpha30,
+    backgroundColor: "rgba(255,255,255,0.4)", // raw — semi-transparent white on media; no alpha token at this value
   },
 }));

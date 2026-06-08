@@ -567,7 +567,8 @@ const styles = StyleSheet.create((theme) => ({
     pointerEvents: "auto",
   },
   menuButton: {
-    padding: theme.spacing.xsmall,
+    width: theme.spacing.xxxlarge,
+    height: theme.spacing.xxxlarge,
     backgroundColor: theme.colors.foundation.background.alpha30,
     borderRadius: 80,
     justifyContent: "center",

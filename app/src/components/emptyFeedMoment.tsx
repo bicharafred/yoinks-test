@@ -1,6 +1,7 @@
 import { ASPECT_RATIO } from "@/utils/constants";
-// import { useNavigation } from "@react-navigation/native";
+import { APP_CREATE_MOMENT_HREF } from "@/navigation/app-tabs.config";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
   Pressable,
@@ -13,11 +14,10 @@ import { StyleSheet } from "react-native-unistyles";
 const emptyFeedGif = require("@/assets/GIFs/empty-feed.gif");
 
 export const EmptyFeedMoment = () => {
-  // const navigation = useNavigation();
+  const router = useRouter();
 
   const handleClickNewPost = () => {
-    // FIXME: improve the navigation and the types for it
-    // navigation.navigate("createMoment");
+    router.push(APP_CREATE_MOMENT_HREF);
   };
 
   return (

@@ -12,6 +12,8 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -131,70 +133,76 @@ export default function ReportScreen() {
 
   return (
     <AppScreenContainer>
-      <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.flex}
       >
-        <Text style={styles.title}>{bodyTitle}</Text>
-        <Text style={styles.subtitle}>Please give us more details.</Text>
+        <ScrollView
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>{bodyTitle}</Text>
+          <Text style={styles.subtitle}>Please give us more details.</Text>
 
-        <View style={styles.reasonsList}>
-          {reasons.map((r) => (
-            <RadioOption
-              key={r.key}
-              label={r.label}
-              selected={selectedReason === r.key}
-              onPress={() => setSelectedReason(r.key)}
-            />
-          ))}
+          <View style={styles.reasonsList}>
+            {reasons.map((r) => (
+              <RadioOption
+                key={r.key}
+                label={r.label}
+                selected={selectedReason === r.key}
+                onPress={() => setSelectedReason(r.key)}
+              />
+            ))}
+          </View>
+
+          <TextInput
+            style={styles.textArea}
+            placeholder="Describe what happened..."
+            placeholderTextColor={styles.placeholder.color}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            maxLength={500}
+            accessibilityLabel="Additional description"
+          />
+        </ScrollView>
+
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <Pressable
+            style={styles.cancelBtn}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+          >
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]}
+            onPress={handleSend}
+            disabled={sendDisabled}
+            accessibilityRole="button"
+            accessibilityLabel="Send report"
+            accessibilityState={{ disabled: sendDisabled }}
+          >
+            {sending ? (
+              <ActivityIndicator color={styles.sendBtnText.color} size="small" />
+            ) : (
+              <Text style={styles.sendBtnText}>Send</Text>
+            )}
+          </Pressable>
         </View>
-
-        <TextInput
-          style={styles.textArea}
-          placeholder="Describe what happened..."
-          placeholderTextColor={styles.placeholder.color}
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          maxLength={500}
-          accessibilityLabel="Additional description"
-        />
-      </ScrollView>
-
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <Pressable
-          style={styles.cancelBtn}
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Cancel"
-        >
-          <Text style={styles.cancelBtnText}>Cancel</Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.sendBtn, sendDisabled && styles.sendBtnDisabled]}
-          onPress={handleSend}
-          disabled={sendDisabled}
-          accessibilityRole="button"
-          accessibilityLabel="Send report"
-          accessibilityState={{ disabled: sendDisabled }}
-        >
-          {sending ? (
-            <ActivityIndicator color={styles.sendBtnTextActive.color} size="small" />
-          ) : (
-            <Text style={[styles.sendBtnText, !sendDisabled && styles.sendBtnTextActive]}>
-              Send
-            </Text>
-          )}
-        </Pressable>
-      </View>
+      </KeyboardAvoidingView>
     </AppScreenContainer>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  flex: {
+    flex: 1,
+  },
   scroll: {
     padding: theme.spacing.large,
     flexGrow: 1,
@@ -283,7 +291,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     paddingVertical: theme.spacing.normal,
     borderRadius: 50,
-    backgroundColor: theme.colors.foundation.background.secondary,
+    backgroundColor: theme.colors.foundation.foreground.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -293,10 +301,7 @@ const styles = StyleSheet.create((theme) => ({
   sendBtnText: {
     fontSize: 15,
     fontWeight: "600",
-    color: theme.colors.foundation.foreground.tertiary,
-  },
-  sendBtnTextActive: {
-    color: theme.colors.foundation.foreground.primary,
+    color: theme.colors.foundation.background.primary,
   },
   fallback: {
     flex: 1,

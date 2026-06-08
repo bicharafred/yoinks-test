@@ -14,6 +14,8 @@ import { useRouter } from "expo-router";
 
 import { AppScreenContainer } from "@/components/navigation/app-screen-container";
 import { getVisitorProfilePush } from "@/navigation/author-profile-route-params";
+import { APP_TAB_PROFILE_HREF } from "@/navigation/app-tabs.config";
+import { RootMachineContext } from "@/machines/rootMachine";
 import { resolveLocalUrl } from "@/utils/apiUrl";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -84,9 +86,15 @@ export default function SearchScreen() {
   const router = useRouter();
   const { theme } = useUnistyles();
 
+  const currentAuthorId = RootMachineContext.useSelector(
+    (s) => (s.context.author as { id?: string } | null)?.id ?? "",
+  );
+
   const [query, setQuery] = useState("");
   const [searchState, setSearchState] = useState<SearchState>({ status: "idle" });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Prevents crash from rapid repeated taps on result rows.
+  const isNavigatingRef = useRef(false);
 
   const runSearch = useCallback(async (q: string) => {
     setSearchState({ status: "loading" });
@@ -125,6 +133,14 @@ export default function SearchScreen() {
 
   const handleUserPress = useCallback(
     (user: SearchUser) => {
+      if (isNavigatingRef.current) return;
+      isNavigatingRef.current = true;
+      setTimeout(() => { isNavigatingRef.current = false; }, 600);
+
+      if (currentAuthorId !== "" && user.id === currentAuthorId) {
+        router.push(APP_TAB_PROFILE_HREF);
+        return;
+      }
       router.push(
         getVisitorProfilePush({
           id: user.id,
@@ -133,7 +149,7 @@ export default function SearchScreen() {
         }),
       );
     },
-    [router],
+    [router, currentAuthorId],
   );
 
   // ── Render helpers ──────────────────────────────────────────────────────────

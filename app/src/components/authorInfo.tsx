@@ -103,10 +103,12 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
   },
   momentNumberContainer: {
-    borderRadius: theme.spacing.xxxlarge,
+    minWidth: theme.spacing.normal,
+    height: theme.spacing.normal,
+    borderRadius: theme.spacing.xsmall,
     justifyContent: "center",
     alignItems: "center",
-    padding: theme.spacing.xxsmall,
+    paddingHorizontal: theme.spacing.xxsmall,
     backgroundColor: theme.colors.foundation?.background.alpha30,
   },
   momentNumberText: {
