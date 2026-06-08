@@ -7,6 +7,7 @@ import {
   Alert,
   AppState,
   type AppStateStatus,
+  Linking,
   Pressable,
   StyleSheet as RNStyleSheet,
   Text,
@@ -33,10 +34,12 @@ import { initStaging } from "@/services/cropMomentStagingStore";
 import type { StagedItem } from "@/types/mediaItem";
 import { ASPECT_RATIO, CameraPosition } from "@/utils/constants";
 import { useCameraCapture } from "@/hooks/useCameraCapture";
-import { useMediaLibraryPicker } from "@/hooks/useMediaLibraryPicker";
+import { useMediaLibraryPicker, useGalleryTrayCapturer } from "@/hooks/useMediaLibraryPicker";
 import { CaptureControls } from "@/create-moment/components/CaptureControls";
+import { CameraCaptureTray } from "@/create-moment/components/CameraCaptureTray";
 import { CreateMomentCameraView } from "@/create-moment/components/CreateMomentCameraView";
 import { PermissionStateView } from "@/create-moment/components/PermissionStateView";
+import { CreateMomentPermissionEducation } from "@/create-moment/components/CreateMomentPermissionEducation";
 
 export default function CreateMomentScreen() {
   const router = useRouter();
@@ -44,9 +47,11 @@ export default function CreateMomentScreen() {
   const { width } = useWindowDimensions();
   const { theme } = useUnistyles();
   const cameraRef = useRef<Camera>(null);
+  const cameraReadyRef = useRef(false);
   const [isScreenFocused, setIsScreenFocused] = useState(true);
 
   const [state, send] = useMachine(momentCreatorMachine, { input: {} });
+  const [trayItems, setTrayItems] = useState<StagedItem[]>([]);
 
   const horizontalInset = theme.spacing.xsmall;
   const viewfinderWidth = width - horizontalInset * 2;
@@ -75,7 +80,10 @@ export default function CreateMomentScreen() {
     useCallback(() => {
       setIsScreenFocused(true);
       syncNativePermissions();
-      return () => setIsScreenFocused(false);
+      return () => {
+        setIsScreenFocused(false);
+        cameraReadyRef.current = false;
+      };
     }, [syncNativePermissions]),
   );
 
@@ -85,13 +93,6 @@ export default function CreateMomentScreen() {
       syncNativePermissions();
     }
   }, [isInPermissionsChecking, syncNativePermissions]);
-
-  const isInPermissionsNeedRequest = state.matches("permissionsNeedRequest");
-  useEffect(() => {
-    if (isInPermissionsNeedRequest) {
-      send({ type: "REQUEST_CAMERA_MIC_PERMISSION" });
-    }
-  }, [isInPermissionsNeedRequest, send]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next: AppStateStatus) => {
@@ -121,14 +122,55 @@ export default function CreateMomentScreen() {
     state.matches({ capture: "libraryFlow" }) ||
     state.matches({ capture: "libraryProcessing" });
 
+  const handlePhotoStaged = useCallback((item: StagedItem) => {
+    setTrayItems((prev) => {
+      if (prev.length >= 10) return prev;
+      return [...prev, item];
+    });
+  }, []);
+
+  const handleTrayCapture = useCallback((newItems: StagedItem[]) => {
+    setTrayItems((prev) => [...prev, ...newItems].slice(0, 10));
+  }, []);
+
+  const handleTrayNext = useCallback(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    initStaging(trayItems);
+    setTrayItems([]);
+    router.push({ pathname: "/(app)/crop-moment" });
+  }, [trayItems, router]);
+
   const { takePhoto, startVideoCapture, stopVideoCapture } = useCameraCapture({
     send,
     cameraRef,
     flashMode: state.context.flashMode,
     isRecording,
+    onPhotoStaged: handlePhotoStaged,
   });
 
-  const { openLibrary } = useMediaLibraryPicker({ send, router });
+  const { openLibrary, confirmAlbumPermission } = useMediaLibraryPicker({ send, router });
+
+  const { captureFromGallery } = useGalleryTrayCapturer({
+    onCaptured: handleTrayCapture,
+    slotsAvailable: 10 - trayItems.length,
+  });
+
+  const handleAlbumPress = useCallback(() => {
+    if (trayItems.length > 0) {
+      void captureFromGallery();
+    } else {
+      void openLibrary();
+    }
+  }, [trayItems.length, captureFromGallery, openLibrary]);
+
+  const handleCameraInitialized = useCallback(() => {
+    cameraReadyRef.current = true;
+  }, []);
+
+  const handleCameraError = useCallback(() => {
+    cameraReadyRef.current = false;
+    send({ type: "CAMERA_UNAVAILABLE" });
+  }, [send]);
 
   const onClose = useCallback(() => {
     if (isRecording) {
@@ -142,6 +184,7 @@ export default function CreateMomentScreen() {
             style: "destructive",
             onPress: () => {
               stopVideoCapture();
+              setTrayItems([]);
               send({ type: "RESET_SESSION" });
               if (router.canGoBack()) {
                 router.back();
@@ -154,6 +197,7 @@ export default function CreateMomentScreen() {
       );
       return;
     }
+    setTrayItems([]);
     send({ type: "RESET_SESSION" });
     if (router.canGoBack()) {
       router.back();
@@ -178,7 +222,6 @@ export default function CreateMomentScreen() {
     isScreenFocused && inCapture && device != null && permissionsGranted,
   );
 
-  const educationDenied = state.matches("permissionsDenied");
   const permissionLoading =
     state.matches("permissionsChecking") || state.matches("permissionsRequesting");
   const showCaptureLoading = permissionLoading || isLibraryProcessing;
@@ -208,29 +251,76 @@ export default function CreateMomentScreen() {
     useCallback(() => {
       if (handoffNavigatedRef.current && state.matches("handoff")) {
         handoffNavigatedRef.current = false;
+        cameraReadyRef.current = false;
+        setTrayItems([]);
         send({ type: "RESET_SESSION" });
       }
     }, [send, state]),
   );
 
-  const permissionVariant = isHandoff
-    ? "handoff"
-    : state.matches("failure")
-      ? "failure"
-      : educationDenied
-        ? "denied"
-        : null;
-
-  if (permissionVariant) {
+  if (isHandoff) {
     return (
       <PermissionStateView
-        variant={permissionVariant}
+        variant="handoff"
         insetTop={insets.top}
         onRetry={() => {
           send({ type: "RESET_SESSION" });
           syncNativePermissions();
         }}
         onClose={onClose}
+      />
+    );
+  }
+
+  if (state.matches("failure")) {
+    return (
+      <PermissionStateView
+        variant="failure"
+        insetTop={insets.top}
+        onRetry={() => {
+          send({ type: "RESET_SESSION" });
+          syncNativePermissions();
+        }}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (state.matches("permissionsNeedRequest") || state.matches("permissionsRequesting")) {
+    return (
+      <CreateMomentPermissionEducation
+        variant="camera-request"
+        insetTop={insets.top}
+        insetBottom={insets.bottom}
+        onPrimaryAction={() => send({ type: "REQUEST_CAMERA_MIC_PERMISSION" })}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (state.matches("permissionsDenied")) {
+    return (
+      <CreateMomentPermissionEducation
+        variant="camera-denied"
+        insetTop={insets.top}
+        insetBottom={insets.bottom}
+        onPrimaryAction={() => { void Linking.openSettings(); }}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (state.context.albumPermissionScreen !== "hidden") {
+    const isAlbumRequest = state.context.albumPermissionScreen === "requesting";
+    return (
+      <CreateMomentPermissionEducation
+        variant={isAlbumRequest ? "album-request" : "album-denied"}
+        insetTop={insets.top}
+        insetBottom={insets.bottom}
+        onPrimaryAction={isAlbumRequest
+          ? () => { void confirmAlbumPermission(); }
+          : () => { void Linking.openSettings(); }}
+        onClose={() => send({ type: "HIDE_ALBUM_PERMISSION_SCREEN" })}
       />
     );
   }
@@ -306,15 +396,25 @@ export default function CreateMomentScreen() {
               cameraRef={cameraRef}
               cameraIsActive={cameraIsActive}
               format={format}
+              onError={handleCameraError}
+              onInitialized={handleCameraInitialized}
             />
             <View style={styles.captureSpacer} />
           </View>
 
+          {inCapture && trayItems.length > 0 ? (
+            <CameraCaptureTray
+              items={trayItems}
+              onNext={handleTrayNext}
+            />
+          ) : null}
+
           {inCapture ? (
             <CaptureControls
               isRecording={isRecording}
+              hasTrayItems={trayItems.length > 0}
               iconColor={iconColor}
-              onAlbumPress={() => { void openLibrary(); }}
+              onAlbumPress={handleAlbumPress}
               onFlipPress={() => {
                 void Haptics.selectionAsync();
                 send({
@@ -326,8 +426,11 @@ export default function CreateMomentScreen() {
                 });
               }}
               onShutterPress={() => {
+                if (trayItems.length >= 10) return;
                 send({ type: "SHUTTER_TAP" });
-                void takePhoto();
+                if (state.matches({ capture: "live" }) && cameraReadyRef.current) {
+                  void takePhoto();
+                }
               }}
               onShutterLongPress={startVideoCapture}
               onShutterPressOut={() => {

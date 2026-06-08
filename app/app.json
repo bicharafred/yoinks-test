@@ -11,7 +11,12 @@
       "backgroundColor": "#FF5533"
     },
     "ios": {
-      "bundleIdentifier": "app.yoinks.YoinksApp"
+      "bundleIdentifier": "app.yoinks.YoinksApp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Yoinks needs camera access to capture moments.",
+        "NSMicrophoneUsageDescription": "Yoinks needs microphone access to record video moments.",
+        "NSPhotoLibraryUsageDescription": "Yoinks needs photo library access so you can choose photos and videos for your moments."
+      }
     },
     "android": {
       "package": "app.yoinks.YoinksApp",
@@ -20,6 +25,22 @@
         "backgroundColor": "#FF5533"
       }
     },
+    "plugins": [
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Yoinks needs camera access to capture moments.",
+          "enableMicrophonePermission": true,
+          "microphonePermissionText": "Yoinks needs microphone access to record video moments."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Yoinks needs photo library access so you can choose photos and videos for your moments."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "7b889fa2-bb2e-4936-ae57-fc8f396f77fc"

@@ -12,7 +12,7 @@ export type MomentCameraControlsProps = {
   onAlbumPress: () => void;
   onFlipPress: () => void;
   onShutterPress: () => void;
-  onShutterLongPress: () => void;
+  onShutterLongPress?: () => void;
   onShutterPressOut: () => void;
 };
 

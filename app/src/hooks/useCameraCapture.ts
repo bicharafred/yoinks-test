@@ -7,15 +7,17 @@ import type { RefObject } from "react";
 import { MomentType } from "@/gql/graphql";
 import type { MomentCreatorEvent } from "@/machines/momentCreatorMachine";
 import { copyTransientMediaToDocuments } from "@/services/momentCaptureStorage";
+import type { StagedItem } from "@/types/mediaItem";
 
 type Props = {
   send: (event: MomentCreatorEvent) => void;
   cameraRef: RefObject<Camera | null>;
   flashMode: "off" | "on";
   isRecording: boolean;
+  onPhotoStaged: (item: StagedItem) => void;
 };
 
-export function useCameraCapture({ send, cameraRef, flashMode, isRecording }: Props) {
+export function useCameraCapture({ send, cameraRef, flashMode, isRecording, onPhotoStaged }: Props) {
   const wasRecordingRef = useRef(false);
 
   useEffect(() => {
@@ -90,17 +92,20 @@ export function useCameraCapture({ send, cameraRef, flashMode, isRecording }: Pr
       const transientUri = raw.startsWith("file://") ? raw : `file://${raw}`;
       try {
         const stableUri = await copyTransientMediaToDocuments(transientUri, MomentType.Photo);
-        send({
-          type: "PREVIEW_READY",
-          pendingMedia: { localUri: stableUri, mediaType: MomentType.Photo, source: "camera" },
+        onPhotoStaged({
+          id: `staged-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          localUri: stableUri,
+          mediaType: MomentType.Photo,
+          source: "camera",
+          cropTransform: null,
         });
       } catch {
         send({ type: "MEDIA_PERSIST_FAILED", message: "Could not save photo." });
       }
     } catch {
-      send({ type: "RESET_SESSION" });
+      send({ type: "MEDIA_PERSIST_FAILED", message: "Could not take photo. Please try again." });
     }
-  }, [send, cameraRef, flashMode]);
+  }, [send, cameraRef, flashMode, onPhotoStaged]);
 
   return { takePhoto, startVideoCapture, stopVideoCapture };
 }

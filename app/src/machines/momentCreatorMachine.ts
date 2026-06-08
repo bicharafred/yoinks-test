@@ -89,7 +89,15 @@ function canRequestCapturePermissions(
   camera: VisionCameraPermissionStatus,
   microphone: VisionCameraPermissionStatus,
 ): boolean {
-  return camera === "not-determined" || microphone === "not-determined";
+  // "denied" is included because on Android, VisionCamera returns "denied" for both
+  // fresh install (OS will show dialog) and "Don't Ask Again" (OS silently declines).
+  // We optimistically show the request screen; the actor's onDone resolves the ambiguity.
+  return (
+    camera === "not-determined" ||
+    camera === "denied" ||
+    microphone === "not-determined" ||
+    microphone === "denied"
+  );
 }
 
 function libraryAllowsPicker(access: MomentCreatorLibraryAccess): boolean {
@@ -403,6 +411,13 @@ export const momentCreatorMachine = setup({
           {
             guard: "shouldEnterCapture",
             target: "capture",
+            actions: "assignPermissionsFromEvent",
+          },
+          {
+            // Keep "denied" here (Android fresh-install / Don't-Ask-Again ambiguity) so a
+            // background/foreground sync doesn't prematurely push us to permissionsDenied.
+            // The actor's onDone resolves it definitively after the OS responds.
+            guard: "shouldNeedPermissionRequest",
             actions: "assignPermissionsFromEvent",
           },
           {

@@ -5,6 +5,7 @@ import { MomentCameraControls } from "@/components/moment-create";
 type Props = {
   isRecording: boolean;
   iconColor: string;
+  hasTrayItems?: boolean;
   onAlbumPress: () => void;
   onFlipPress: () => void;
   onShutterPress: () => void;
@@ -15,6 +16,7 @@ type Props = {
 export function CaptureControls({
   isRecording,
   iconColor,
+  hasTrayItems,
   onAlbumPress,
   onFlipPress,
   onShutterPress,
@@ -29,7 +31,7 @@ export function CaptureControls({
       onAlbumPress={onAlbumPress}
       onFlipPress={onFlipPress}
       onShutterPress={onShutterPress}
-      onShutterLongPress={onShutterLongPress}
+      onShutterLongPress={hasTrayItems ? undefined : onShutterLongPress}
       onShutterPressOut={onShutterPressOut}
     />
   );

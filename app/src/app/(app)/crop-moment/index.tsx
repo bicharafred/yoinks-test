@@ -19,6 +19,7 @@ import {
   setCurrentIndex,
   setCropForIndex,
 } from "@/services/cropMomentStagingStore";
+import { useMediaLibraryAppender } from "@/hooks/useMediaLibraryPicker";
 
 export default function CropMomentScreen() {
   const router = useRouter();
@@ -33,7 +34,6 @@ export default function CropMomentScreen() {
   const items = getStagedItems();
   const currentIndex = getCurrentIndex();
   const currentItem = items[currentIndex];
-  const isMultiItem = items.length > 1;
   const isLastItem = currentIndex === items.length - 1;
 
   const saveCropForCurrent = useCallback(() => {
@@ -68,6 +68,18 @@ export default function CropMomentScreen() {
     },
     [saveCropForCurrent],
   );
+
+  const handleAppended = useCallback((firstNewIndex: number) => {
+    setCurrentIndex(firstNewIndex);
+    setItemVersion((v) => v + 1);
+  }, []);
+
+  const { appendFromLibrary } = useMediaLibraryAppender({ onAppended: handleAppended });
+
+  const handleAddMore = useCallback(() => {
+    saveCropForCurrent();
+    void appendFromLibrary();
+  }, [saveCropForCurrent, appendFromLibrary]);
 
   const handleContinue = useCallback(() => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -121,11 +133,12 @@ export default function CropMomentScreen() {
         }
       />
 
-      {isMultiItem ? (
+      {items.length >= 1 ? (
         <MultiMediaThumbnailStrip
           items={items}
           currentIndex={currentIndex}
           onSelectIndex={handleSelectIndex}
+          onAddMore={items.length < 10 ? handleAddMore : undefined}
         />
       ) : null}
 

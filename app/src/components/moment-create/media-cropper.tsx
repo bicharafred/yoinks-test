@@ -77,11 +77,11 @@ export const MediaCropper = forwardRef<MediaCropperRef, Props>(
         "worklet";
         const s = clamp(savedScale.value * e.scale, MIN_SCALE, MAX_SCALE);
         scale.value = s;
-        // Re-clamp position so the image never reveals empty space at the edges.
+        // Re-clamp live position to the new scale bounds so the image never reveals empty space.
         const maxX = (frameWidth * (s - 1)) / 2;
         const maxY = (frameHeight * (s - 1)) / 2;
-        translateX.value = clamp(savedTranslateX.value, -maxX, maxX);
-        translateY.value = clamp(savedTranslateY.value, -maxY, maxY);
+        translateX.value = clamp(translateX.value, -maxX, maxX);
+        translateY.value = clamp(translateY.value, -maxY, maxY);
       })
       .onEnd(() => {
         "worklet";

@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MomentType } from "@/gql/graphql";
 import type { StagedItem } from "@/types/mediaItem";
@@ -11,9 +11,10 @@ type Props = {
   items: StagedItem[];
   currentIndex: number;
   onSelectIndex: (index: number) => void;
+  onAddMore?: () => void;
 };
 
-export function MultiMediaThumbnailStrip({ items, currentIndex, onSelectIndex }: Props) {
+export function MultiMediaThumbnailStrip({ items, currentIndex, onSelectIndex, onAddMore }: Props) {
   const { theme } = useUnistyles();
 
   return (
@@ -53,6 +54,16 @@ export function MultiMediaThumbnailStrip({ items, currentIndex, onSelectIndex }:
           </Pressable>
         );
       })}
+      {onAddMore ? (
+        <Pressable
+          onPress={onAddMore}
+          accessibilityRole="button"
+          accessibilityLabel="Add more media"
+          style={styles.addMoreTile}
+        >
+          <Text style={styles.addMoreLabel} aria-hidden>+</Text>
+        </Pressable>
+      ) : null}
     </ScrollView>
   );
 }
@@ -88,5 +99,22 @@ const styles = StyleSheet.create((theme) => ({
   },
   videoPlaceholder: {
     backgroundColor: theme.colors.foundation.background.secondary,
+  },
+  addMoreTile: {
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: THUMB_RADIUS,
+    borderWidth: 2,
+    borderColor: theme.colors.foundation.foreground.tertiary,
+    backgroundColor: theme.colors.foundation.background.secondary,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    marginLeft: theme.spacing.xsmall,
+  },
+  addMoreLabel: {
+    fontSize: 22, // raw — sized for the plus glyph within the 52pt tile
+    lineHeight: 26,
+    color: theme.colors.foundation.foreground.tertiary,
+    fontWeight: "300" as const,
   },
 }));

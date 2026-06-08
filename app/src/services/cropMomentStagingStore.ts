@@ -24,6 +24,13 @@ export function initStaging(items: StagedItem[]): void {
   currentIndex = 0;
 }
 
+export function appendStagingItems(items: StagedItem[]): void {
+  const remaining = 10 - stagedItems.length;
+  if (remaining <= 0) return;
+  const toAdd = items.slice(0, remaining).map((item) => ({ ...item, cropTransform: null as null }));
+  stagedItems = [...stagedItems, ...toAdd];
+}
+
 export function getStagedItems(): StagedItem[] {
   return stagedItems;
 }

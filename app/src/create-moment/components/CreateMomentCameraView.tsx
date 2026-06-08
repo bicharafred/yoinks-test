@@ -6,7 +6,7 @@ import {
 import type { RefObject } from "react";
 import { StyleSheet as RNStyleSheet } from "react-native";
 import { Camera, useCameraFormat } from "react-native-vision-camera";
-import type { CameraDevice } from "react-native-vision-camera";
+import type { CameraDevice, CameraRuntimeError } from "react-native-vision-camera";
 
 type Props = {
   width: number;
@@ -18,6 +18,8 @@ type Props = {
   cameraRef: RefObject<Camera | null>;
   cameraIsActive: boolean;
   format: ReturnType<typeof useCameraFormat>;
+  onError: (error: CameraRuntimeError) => void;
+  onInitialized: () => void;
 };
 
 export function CreateMomentCameraView({
@@ -30,6 +32,8 @@ export function CreateMomentCameraView({
   cameraRef,
   cameraIsActive,
   format,
+  onError,
+  onInitialized,
 }: Props) {
   return (
     <MomentViewfinderFrame
@@ -51,6 +55,8 @@ export function CreateMomentCameraView({
           audio
           enableZoomGesture
           photoHdr={format?.supportsPhotoHdr}
+          onError={onError}
+          onInitialized={onInitialized}
         />
       )}
     </MomentViewfinderFrame>
